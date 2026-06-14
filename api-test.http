@@ -1,0 +1,75 @@
+### Test Base Health Check
+GET http://127.0.0.1:8788/api/health
+
+###
+
+### Test Database Verification
+GET http://127.0.0.1:8788/api/test-db
+
+###
+
+### Test Authentication / Auto-Signup
+POST http://127.0.0.1:8788/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@suryansh.com"
+}
+
+###
+
+### Test Create Survey
+POST http://127.0.0.1:8788/api/surveys
+Authorization: 0aa3679b-209e-4c91-a7f7-b8ef9a638505
+Content-Type: application/json
+
+{
+  "title": "Suryansh Placement Feedback Survey",
+  "primary_color": "#2563eb",
+  "logo_url": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe"
+}
+
+###
+
+### Test Fetch Dashboard Surveys
+GET http://127.0.0.1:8788/api/surveys
+Authorization: 0aa3679b-209e-4c91-a7f7-b8ef9a638505
+
+###
+
+### Test Save Questions to Survey (Replace the ID in the URL with the surveyId you got in your last test!)
+POST http://127.0.0.1:8788/api/surveys/a663071c-9442-44f7-8bbe-c27afae21982/questions
+Authorization: 0aa3679b-209e-4c91-a7f7-b8ef9a638505
+Content-Type: application/json
+
+{
+  "questions": [
+    {
+      "type": "text",
+      "question_text": "What is your full name?"
+    },
+    {
+      "type": "multiple_choice",
+      "question_text": "Which B.Tech specialization are you in?",
+      "options": ["Data Science", "Computer Science", "Information Technology"]
+    },
+    {
+      "type": "rating",
+      "question_text": "Rate your interview readiness from 1 to 5"
+    }
+  ]
+}
+
+###
+
+### Test Public Anonymous Survey Response Submission
+POST http://127.0.0.1:8788/api/public/surveys/a663071c-9442-44f7-8bbe-c27afae21982/responses
+Content-Type: application/json
+
+{
+  "answers": {
+    "question_1_placeholder_id": "Suryansh Raghav",
+    "question_2_placeholder_id": "Data Science",
+    "question_3_placeholder_id": "5"
+  }
+}
