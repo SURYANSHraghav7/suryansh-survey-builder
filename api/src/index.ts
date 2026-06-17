@@ -12,7 +12,6 @@ type Variables = {
 
 const app = new Hono<{ Bindings: Bindings; Variables: Variables }>()
 
-// ── CORS ─────────────────────────────────────────────────────────────────────
 app.use(
   '/api/*',
   cors({
@@ -23,10 +22,8 @@ app.use(
   }),
 )
 
-// ── HEALTH CHECK ─────────────────────────────────────────────────────────────
 app.get('/api/health', (c) => c.json({ status: 'ok' }))
 
-// ── AUTH MIDDLEWARE ───────────────────────────────────────────────────────────
 const requireAuth = async (c: any, next: any) => {
   const sid = getCookie(c, 'sid')
   if (!sid) return c.json({ error: 'Unauthorized' }, 401)
@@ -43,7 +40,6 @@ const requireAuth = async (c: any, next: any) => {
   await next()
 }
 
-// ── LOGIN ─────────────────────────────────────────────────────────────────────
 app.post('/api/auth/login', async (c) => {
   try {
     const { email } = await c.req.json()
@@ -53,7 +49,6 @@ app.post('/api/auth/login', async (c) => {
 
     const clean = email.toLowerCase().trim()
 
-    // Find or create user
     let user: any = await c.env.DB.prepare('SELECT * FROM users WHERE email = ?')
       .bind(clean)
       .first()
@@ -66,13 +61,11 @@ app.post('/api/auth/login', async (c) => {
       user = { id, email: clean }
     }
 
-    // Create session
     const sessionId = crypto.randomUUID()
     await c.env.DB.prepare('INSERT INTO sessions (id, user_id, expires_at) VALUES (?, ?, ?)')
       .bind(sessionId, user.id, Date.now() + 7 * 24 * 60 * 60 * 1000)
       .run()
 
-    // Set cookie
     setCookie(c, 'sid', sessionId, {
       httpOnly: true,
       path: '/',
@@ -86,7 +79,6 @@ app.post('/api/auth/login', async (c) => {
   }
 })
 
-// ── LOGOUT ────────────────────────────────────────────────────────────────────
 app.post('/api/auth/logout', async (c) => {
   const sid = getCookie(c, 'sid')
   if (sid) {
@@ -96,12 +88,10 @@ app.post('/api/auth/logout', async (c) => {
   return c.json({ ok: true })
 })
 
-// ── GET current user ──────────────────────────────────────────────────────────
 app.get('/api/auth/me', requireAuth, async (c) => {
   return c.json({ user: c.get('user') })
 })
 
-// ── LIST SURVEYS ──────────────────────────────────────────────────────────────
 app.get('/api/surveys', requireAuth, async (c) => {
   try {
     const user = c.get('user')
@@ -116,7 +106,6 @@ app.get('/api/surveys', requireAuth, async (c) => {
   }
 })
 
-// ── CREATE SURVEY ─────────────────────────────────────────────────────────────
 app.post('/api/surveys', requireAuth, async (c) => {
   try {
     const user = c.get('user')
@@ -138,7 +127,6 @@ app.post('/api/surveys', requireAuth, async (c) => {
   }
 })
 
-// ── GET SURVEY + QUESTIONS ────────────────────────────────────────────────────
 app.use('/api/surveys/:id', requireAuth)
 app.get('/api/surveys/:id', async (c) => {
   try {
@@ -159,7 +147,6 @@ app.get('/api/surveys/:id', async (c) => {
   }
 })
 
-// ── UPDATE SURVEY BRANDING ────────────────────────────────────────────────────
 app.put('/api/surveys/:id', requireAuth, async (c) => {
   try {
     const { title, brand_color, logo_url } = await c.req.json()
@@ -174,8 +161,7 @@ app.put('/api/surveys/:id', requireAuth, async (c) => {
   }
 })
 
-// ── SAVE QUESTIONS ────────────────────────────────────────────────────────────
-// ── SAVE QUESTIONS (EMERGENCY FIX) ────────────────────────────────────────────
+
 app.put('/api/surveys/:id/questions', requireAuth, async (c) => {
   const surveyId = c.req.param('id')
 
@@ -185,10 +171,8 @@ app.put('/api/surveys/:id/questions', requireAuth, async (c) => {
 
     const questions = JSON.parse(rawText)
 
-    // 1. Wipe old questions safely
     await c.env.DB.prepare('DELETE FROM questions WHERE survey_id = ?').bind(surveyId).run()
 
-    // 2. Insert new questions (REMOVED 'config' TO PREVENT SCHEMA CRASHES)
     if (Array.isArray(questions)) {
       for (let i = 0; i < questions.length; i++) {
         const q = questions[i]
@@ -208,7 +192,6 @@ app.put('/api/surveys/:id/questions', requireAuth, async (c) => {
   }
 })
 
-// ── PUBLIC: GET SURVEY ────────────────────────────────────────────────────────
 app.get('/api/public/surveys/:slug', async (c) => {
   try {
     const survey = await c.env.DB.prepare('SELECT * FROM surveys WHERE slug = ?')
@@ -228,7 +211,6 @@ app.get('/api/public/surveys/:slug', async (c) => {
   }
 })
 
-// ── PUBLIC: SUBMIT RESPONSE ───────────────────────────────────────────────────
 app.post('/api/public/surveys/:slug/respond', async (c) => {
   try {
     const survey: any = await c.env.DB.prepare('SELECT id FROM surveys WHERE slug = ?')
@@ -257,7 +239,6 @@ app.post('/api/public/surveys/:slug/respond', async (c) => {
   }
 })
 
-// ── GET RESPONSES (owner only) ────────────────────────────────────────────────
 app.get('/api/surveys/:id/responses', requireAuth, async (c) => {
   try {
     const { results } = await c.env.DB.prepare(`

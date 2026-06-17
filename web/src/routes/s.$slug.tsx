@@ -31,12 +31,10 @@ function PublicSurveyPage() {
     fetchSurvey()
   }, [slug])
 
-  // Update the answer dictionary when a user types or clicks
   const handleAnswerChange = (questionId: string, value: string) => {
     setAnswers((prev) => ({ ...prev, [questionId]: value }))
   }
 
-  // Package answers and send to the backend
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setStatus('submitting')
@@ -66,7 +64,6 @@ function PublicSurveyPage() {
     }
   }
 
-  // --- RENDERING STATES ---
   if (status === 'loading') {
     return (
       <div
@@ -145,7 +142,6 @@ function PublicSurveyPage() {
 
   const brandColor = survey?.brand_color || '#4F46E5'
 
-  // --- MAIN SURVEY UI ---
   return (
     <div
       style={{

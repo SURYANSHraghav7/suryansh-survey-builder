@@ -42,7 +42,6 @@ function BuilderStudio() {
         id: crypto.randomUUID(),
         type: type,
         label: 'New Question',
-        // Initialize multiple choice with default options
         options: type === 'multiple-choice' ? ['Option 1', 'Option 2'] : undefined,
       },
     ])
@@ -54,7 +53,6 @@ function BuilderStudio() {
     setQuestions(updated)
   }
 
-  // --- MULTIPLE CHOICE OPTION CONTROLS ---
   const updateOption = (qIndex: number, optIndex: number, value: string) => {
     const updated = [...questions]
     if (!updated[qIndex].options) updated[qIndex].options = []
@@ -75,7 +73,6 @@ function BuilderStudio() {
     setQuestions(updated)
   }
 
-  // --- REORDER & DELETE CONTROLS ---
   const moveUp = (index: number) => {
     if (index === 0) return
     const updated = [...questions]
